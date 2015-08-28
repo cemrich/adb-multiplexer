@@ -1,12 +1,18 @@
 {
   "name": "adb-multiplexer",
   "version": "1.0.0",
-  "description": "",
+  "description": "Executes ADB commands on all connected devices.",
   "main": "adb-multiplexer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Christine Coenen",
-  "license": "ISC",
-  "dependencies": {}
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cemrich/adb-multiplexer.git"
+  },
+  "dependencies": {
+    "argparse": "^1.0.2"
+  }
 }
