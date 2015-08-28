@@ -1,0 +1,12 @@
+{
+  "name": "adb-multiplexer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "adb-multiplexer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Christine Coenen",
+  "license": "ISC",
+  "dependencies": {}
+}
