@@ -1,7 +1,6 @@
 "use strict";
 
 var colors = require('colors');
-var child_process = require('child_process');
 var ArgumentParser = require('argparse').ArgumentParser;
 var adbBridge = require('./modules/adbBridge');
 var DeviceDetector = require('./modules/DeviceDetector');
@@ -31,7 +30,7 @@ if (params) {
 
   if (devices.length > 0) {
     var command = sanitizeAdbCommand(params.command);
-    executeCommandOnDevices(devices, command, params.timeout);
+    executeCommandOnDevices(devices, command);
   } else {
     console.error('no devices detected');
   }
@@ -43,7 +42,7 @@ function sanitizeAdbCommand(command) {
   return command.replace(/^adb /, '');
 }
 
-function executeCommandOnDevices(deviceIds, command, timeout) {
+function executeCommandOnDevices(deviceIds, command) {
   deviceIds.forEach(function (deviceId) {
     console.log();
     console.log('========================================');
