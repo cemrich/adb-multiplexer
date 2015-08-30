@@ -1,5 +1,6 @@
 "use strict";
 
+var colors = require('colors');
 var child_process = require('child_process');
 var ArgumentParser = require('argparse').ArgumentParser;
 var adbBridge = require('./modules/adbBridge');
@@ -13,7 +14,13 @@ var args = new ArgumentParser({
 });
 
 args.addArgument([ 'command' ], {
-    help: 'ADB command to execute, for example "adb install <path to apk>". Use quotation marks for multiword commands. The "adb" prefix is optional.'
+  help: 'ADB command to execute, for example "adb install <path to apk>". Use quotation marks for multiword commands. The "adb" prefix is optional.'
+});
+
+args.addArgument([ '--no-color' ], {
+  action: 'storeTrue',
+  required: false,
+  help: 'Disables coloring of adb command output.'
 });
 
 
@@ -44,6 +51,6 @@ function executeCommandOnDevices(deviceIds, command, timeout) {
     console.log('========================================');
 
     var result = adbBridge.execSync(command, deviceId);
-    console.log(result);
+    console.log(result.cyan);
   });
 }
