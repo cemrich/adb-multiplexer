@@ -1,3 +1,5 @@
+"use strict";
+
 var child_process = require('child_process');
 var ArgumentParser = require('argparse').ArgumentParser;
 var adbBridge = require('./modules/adbBridge');
@@ -36,11 +38,12 @@ function sanitizeAdbCommand(command) {
 
 function executeCommandOnDevices(deviceIds, command, timeout) {
   deviceIds.forEach(function (deviceId) {
-    var result = adbBridge.execSync(command, deviceId);
     console.log();
     console.log('========================================');
     console.log('Result for', deviceId);
     console.log('========================================');
+
+    var result = adbBridge.execSync(command, deviceId);
     console.log(result);
   });
 }
