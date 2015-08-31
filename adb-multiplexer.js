@@ -26,13 +26,20 @@ args.addArgument([ '--no-color' ], {
 var params = args.parseArgs();
 
 if (params) {
-  var devices = new DeviceDetector().devices;
+  var deviceDetector = new DeviceDetector();
+  var onlineDevices = deviceDetector.getOnlineDevices();
+  var offlineDevices = deviceDetector.getOfflineDevices();
 
-  if (devices.length > 0) {
+  if (offlineDevices.length > 0) {
+      console.log('offline devices detected:\n' + formatDeviceList(offlineDevices).red);
+  }
+
+  if (onlineDevices.length > 0) {
+    console.log('devices detected:\n' + formatDeviceList(onlineDevices).green);
     var command = sanitizeAdbCommand(params.command);
-    executeCommandOnDevices(devices, command);
+    executeCommandOnDevices(onlineDevices, command);
   } else {
-    console.error('no devices detected');
+    console.error('no devices detected'.red);
   }
 }
 
@@ -52,4 +59,12 @@ function executeCommandOnDevices(deviceIds, command) {
     var result = adbBridge.execSync(command, device.id);
     console.log(result.cyan);
   });
+}
+
+function formatDeviceList(deviceList) {
+  return deviceList.reduce(function (previousValue, device) {
+    var line = '- ' + device.id;
+    line += ' (' + (device.model ? device.model : device.status) + ')';
+    return previousValue + line + '\n';
+  }, '');
 }
