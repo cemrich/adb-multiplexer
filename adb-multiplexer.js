@@ -43,13 +43,13 @@ function sanitizeAdbCommand(command) {
 }
 
 function executeCommandOnDevices(deviceIds, command) {
-  deviceIds.forEach(function (deviceId) {
+  deviceIds.forEach(function (device) {
     console.log();
     console.log('========================================');
-    console.log('Result for', deviceId);
+    console.log('Result for', device.id, '(' + device.model + ')');
     console.log('========================================');
 
-    var result = adbBridge.execSync(command, deviceId);
+    var result = adbBridge.execSync(command, device.id);
     console.log(result.cyan);
   });
 }

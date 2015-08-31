@@ -1,8 +1,9 @@
 "use strict";
 
 var adbBridge = require('./adbBridge');
+var Device = require('./Device');
 
-var DEVICE_ID_REGEXP = /^[a-zA-Z0-9]{5,}/mg;
+var DEVICE_ID_REGEXP = /^([a-zA-Z0-9\-]{5,})\s+(device|emulator|offline|no device)\s+product\:(.*)\s+model:(.*)\s+device:(.*)$/mg;
 
 var DeviceDetector = function () {
   this.devices = getDeviceIds();
@@ -17,11 +18,16 @@ function getDeviceIds() {
   // TODO: exclude devices that are offline
 
   var deviceIds = [];
-  var devices = adbBridge.execSync('devices');
+  var devices = adbBridge.execSync('devices -l');
 
   var match;
   while ((match = DEVICE_ID_REGEXP.exec(devices))) {
-    deviceIds.push(match[0]);
+    var device = new Device(match[1]);
+    device.status = match[2];
+    device.product = match[3];
+    device.model = match[4];
+    device.device = match[5];
+    deviceIds.push(device);
   }
 
   return deviceIds;
