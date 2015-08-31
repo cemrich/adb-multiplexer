@@ -16,6 +16,13 @@ args.addArgument([ 'command' ], {
   help: 'ADB command to execute, for example "adb install <path to apk>". Use quotation marks for multiword commands. The "adb" prefix is optional.'
 });
 
+args.addArgument([ '-c', '--continue' ], {
+  action: 'storeTrue',
+  required: false,
+  dest: 'continue',
+  help: 'Continues to execute the given command on every device that will be connected for as long as this tool is running.'
+});
+
 args.addArgument([ '--no-color' ], {
   action: 'storeTrue',
   required: false,
@@ -24,25 +31,36 @@ args.addArgument([ '--no-color' ], {
 
 
 var params = args.parseArgs();
+var deviceDetector = new DeviceDetector();
+executeForOnlineDevices(deviceDetector, params.command);
 
-if (params) {
-  var deviceDetector = new DeviceDetector();
+if (params.continue) {
+  executeForFutureDevices(deviceDetector, params.command);
+}
+
+
+function executeForFutureDevices(deviceDetector, command) {
+  deviceDetector.watch(function (changeset) {
+    if (changeset.added.length > 0 || changeset.changed.length > 0) {
+      executeForOnlineDevices(deviceDetector, params.command);
+    }
+  });
+}
+
+function executeForOnlineDevices(deviceDetector, command) {
   var onlineDevices = deviceDetector.getOnlineDevices();
   var offlineDevices = deviceDetector.getOfflineDevices();
 
-  if (offlineDevices.length > 0) {
-      console.log('offline devices detected:\n' + formatDeviceList(offlineDevices).red);
-  }
-
   if (onlineDevices.length > 0) {
-    console.log('devices detected:\n' + formatDeviceList(onlineDevices).green);
-    var command = sanitizeAdbCommand(params.command);
     executeCommandOnDevices(onlineDevices, command);
   } else {
-    console.error('no devices detected'.red);
+    if (offlineDevices.length > 0) {
+        console.log('offline devices detected:\n' + formatDeviceList(offlineDevices).red);
+    } else {
+      console.error('no devices detected\n'.red);
+    }
   }
 }
-
 
 function sanitizeAdbCommand(command) {
   // remove adb at beginning
@@ -50,13 +68,16 @@ function sanitizeAdbCommand(command) {
 }
 
 function executeCommandOnDevices(deviceIds, command) {
+  console.log('devices detected:\n' + formatDeviceList(deviceIds).green);
+  var sanitizedCommand = sanitizeAdbCommand(command);
+
   deviceIds.forEach(function (device) {
     console.log();
     console.log('========================================');
     console.log('Result for', device.id, '(' + device.model + ')');
     console.log('========================================');
 
-    var result = adbBridge.execSync(command, device.id);
+    var result = adbBridge.execSync(sanitizedCommand, device.id);
     console.log(result.cyan);
   });
 }
