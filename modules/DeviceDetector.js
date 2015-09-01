@@ -12,10 +12,8 @@ var DeviceDetector = function () {
 };
 
 DeviceDetector.prototype.watch = function (onDevicesChanged) {
-  var inform = informAboutChangeset.bind(this);
-  setInterval(function () {
-    inform(onDevicesChanged);
-  }, WATCH_INTERVAL_MILLIS);
+  this.onDevicesChangedListener = onDevicesChanged;
+  setInterval(this.informAboutChangeset.bind(this), WATCH_INTERVAL_MILLIS);
 };
 
 DeviceDetector.prototype.getDevices = function () {
@@ -38,7 +36,7 @@ DeviceDetector.prototype.getOfflineDevices = function () {
   });
 };
 
-function informAboutChangeset(listener) {
+DeviceDetector.prototype.informAboutChangeset = function () {
   // look for new or disconnected devices
   var oldDeviceMap = this.deviceMap;
   this.deviceMap = getDevices();
@@ -47,9 +45,9 @@ function informAboutChangeset(listener) {
   if (changeset.added.length > 0 ||
     changeset.removed.length > 0 ||
     changeset.changed.length > 0) {
-      listener(changeset);
+      this.onDevicesChangedListener(changeset);
   }
-}
+};
 
 function getChangeset(oldDeviceMap, newDeviceMap) {
   var changeset = {
