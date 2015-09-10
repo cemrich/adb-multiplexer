@@ -1,4 +1,6 @@
-# ADB multiplexer
+[![Dependency Status](https://gemnasium.com/cemrich/adb-multiplexer.svg)](https://gemnasium.com/cemrich/adb-multiplexer)
+
+# ADB multiplexer 
 
 ## Prerequisites
 1. [node.js](https://nodejs.org/) - test if nodejs is installed properly by executing ```node -v```
