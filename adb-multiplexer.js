@@ -5,6 +5,11 @@ var ArgumentParser = require('argparse').ArgumentParser;
 var adbBridge = require('./modules/adbBridge');
 var DeviceDetector = require('./modules/DeviceDetector');
 
+
+//==============================
+// set up argument parsing
+//==============================
+
 var args = new ArgumentParser({
   version: '1.0',
   addHelp: true,
@@ -30,15 +35,34 @@ args.addArgument([ '--no-color' ], {
 });
 
 
+//==============================
+// parse arguments and init
+//==============================
+
 var params = args.parseArgs();
 var deviceDetector = new DeviceDetector();
+
+// always execute for all currently connected devices
 executeForOnlineDevices(deviceDetector, params.command);
 
 if (params.continue) {
+  // additionally execute for devices conneted in the future
   executeForFutureDevices(deviceDetector, params.command);
 }
 
 
+//==============================
+// helper functions
+//==============================
+
+/**
+ * Executes the given adb command on all devices that will be
+ * connected in the future.
+ * @param  {DeviceDetector} deviceDetector
+ * @param  {string}         command          adb command to execute,
+ *                                           leading "adb" keyword is optional
+ * @return {void}
+ */
 function executeForFutureDevices(deviceDetector, command) {
   deviceDetector.watch(function (changeset) {
     if (changeset.added.length > 0 || changeset.changed.length > 0) {
@@ -47,6 +71,13 @@ function executeForFutureDevices(deviceDetector, command) {
   });
 }
 
+/**
+ * Executes the given adb command on all currently connected devices.
+ * @param  {DeviceDetector} deviceDetector
+ * @param  {string}         command          adb command to execute,
+ *                                           leading "adb" keyword is optional
+ * @return {void}
+ */
 function executeForOnlineDevices(deviceDetector, command) {
   var onlineDevices = deviceDetector.getOnlineDevices();
   var offlineDevices = deviceDetector.getOfflineDevices();
@@ -62,11 +93,22 @@ function executeForOnlineDevices(deviceDetector, command) {
   }
 }
 
+/**
+ * Removes trailing "adb" keyword from command.
+ * @param  {string} command   adb command to execute,
+ *                            leading "adb" keyword is optional
+ * @return {string}           sanitized command string
+ */
 function sanitizeAdbCommand(command) {
-  // remove adb at beginning
   return command.replace(/^adb /, '');
 }
 
+/**
+ * Executes the given adb command on all devices with the given ids.
+ * @param  {string[]} deviceIds array of android device ids
+ * @param  {string}   command   sanitized adb command to execute
+ * @return {void}
+ */
 function executeCommandOnDevices(deviceIds, command) {
   console.log('devices detected:\n' + formatDeviceList(deviceIds).green);
   var sanitizedCommand = sanitizeAdbCommand(command);
@@ -82,6 +124,13 @@ function executeCommandOnDevices(deviceIds, command) {
   });
 }
 
+/**
+ * Takes a list of Device instances and transforms it into a nice
+ * string output.
+ * @param  {Device[]} deviceList  array of Device instances
+ * @return {string}               string with the most important device infos
+ *                                in list form
+ */
 function formatDeviceList(deviceList) {
   return deviceList.reduce(function (previousValue, device) {
     var line = '- ' + device.id;
