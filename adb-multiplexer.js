@@ -2,7 +2,6 @@
 
 var colors = require('colors');
 var ArgumentParser = require('argparse').ArgumentParser;
-var adbBridge = require('./modules/adbBridge');
 var DeviceDetector = require('./modules/DeviceDetector');
 
 
@@ -94,32 +93,21 @@ function executeForOnlineDevices(deviceDetector, command) {
 }
 
 /**
- * Removes trailing "adb" keyword from command.
- * @param  {string} command   adb command to execute,
- *                            leading "adb" keyword is optional
- * @return {string}           sanitized command string
- */
-function sanitizeAdbCommand(command) {
-  return command.replace(/^adb /, '');
-}
-
-/**
  * Executes the given adb command on all devices with the given ids.
- * @param  {string[]} deviceIds array of android device ids
+ * @param  {Device[]} devices   array of Device instances
  * @param  {string}   command   sanitized adb command to execute
  * @return {void}
  */
-function executeCommandOnDevices(deviceIds, command) {
-  console.log('devices detected:\n' + formatDeviceList(deviceIds).green);
-  var sanitizedCommand = sanitizeAdbCommand(command);
+function executeCommandOnDevices(devices, command) {
+  console.log('devices detected:\n' + formatDeviceList(devices).green);
 
-  deviceIds.forEach(function (device) {
+  devices.forEach(function (device) {
     console.log();
     console.log('========================================');
     console.log('Result for', device.id, '(' + device.model + ')');
     console.log('========================================');
 
-    var result = adbBridge.execSync(sanitizedCommand, device.id);
+    var result = device.executeCommandSync(command);
     console.log(result.cyan);
   });
 }
@@ -133,8 +121,6 @@ function executeCommandOnDevices(deviceIds, command) {
  */
 function formatDeviceList(deviceList) {
   return deviceList.reduce(function (previousValue, device) {
-    var line = '- ' + device.id;
-    line += ' (' + (device.model ? device.model : device.status) + ')';
-    return previousValue + line + '\n';
+    return previousValue + '- ' + device.toStatusString() + '\n';
   }, '');
 }
