@@ -60,7 +60,6 @@ if (params.continue) {
  * @param  {DeviceDetector} deviceDetector
  * @param  {string}         command          adb command to execute,
  *                                           leading "adb" keyword is optional
- * @return {void}
  */
 function executeForFutureDevices(deviceDetector, command) {
   deviceDetector.watch(function (changeset) {
@@ -75,7 +74,6 @@ function executeForFutureDevices(deviceDetector, command) {
  * @param  {DeviceDetector} deviceDetector
  * @param  {string}         command          adb command to execute,
  *                                           leading "adb" keyword is optional
- * @return {void}
  */
 function executeForOnlineDevices(deviceDetector, command) {
   var onlineDevices = deviceDetector.getOnlineDevices();
@@ -96,7 +94,6 @@ function executeForOnlineDevices(deviceDetector, command) {
  * Executes the given adb command on all devices with the given ids.
  * @param  {Device[]} devices   array of Device instances
  * @param  {string}   command   sanitized adb command to execute
- * @return {void}
  */
 function executeCommandOnDevices(devices, command) {
   console.log('devices detected:\n' + formatDeviceList(devices).green);
