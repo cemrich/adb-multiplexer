@@ -28,7 +28,11 @@ var REPLACE_ADB_REGEX = new RegExp('^' + ADB_PATH);
  */
 exports.execSync = function (command, deviceId) {
   var adbCommand = getAdbCommand(command, deviceId);
-  return child_process.execSync(adbCommand).toString();
+  var stdout = child_process.execSync(adbCommand).toString();
+  // as adb bridge returns very funny newlines (at least on windows),
+  // remove them and only leave clean \n newlines
+  stdout = stdout.replace(/\r+/gm, '');
+  return stdout;
 };
 
 /**
