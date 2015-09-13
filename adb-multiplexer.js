@@ -80,7 +80,13 @@ function executeForOnlineDevices(deviceDetector, command) {
   var offlineDevices = deviceDetector.getOfflineDevices();
 
   if (onlineDevices.length > 0) {
-    executeCommandOnDevices(onlineDevices, command);
+    console.log('devices detected:\n' + formatDeviceList(onlineDevices).green);
+    try {
+      executeCommandOnDevices(onlineDevices, command);
+    } catch (error) {
+      console.error(error.red);
+      // TODO: "unwatch" device detector when started with -c param to end program
+    }
   } else {
     if (offlineDevices.length > 0) {
         console.log('offline devices detected:\n' + formatDeviceList(offlineDevices).red);
@@ -96,8 +102,6 @@ function executeForOnlineDevices(deviceDetector, command) {
  * @param  {string}   command   sanitized adb command to execute
  */
 function executeCommandOnDevices(devices, command) {
-  console.log('devices detected:\n' + formatDeviceList(devices).green);
-
   devices.forEach(function (device) {
     console.log();
     console.log('========================================');

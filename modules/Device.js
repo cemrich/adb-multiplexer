@@ -39,8 +39,10 @@ Device.prototype.isEmulator = function () {
  * Executes the given adb comand on this device and returns the result
  * as string. This method is blocking and returns when command execution
  * is finished-
- * @param  {string} command adb command to execute, leading "adb" keyword is optional
- * @return {string}         output of the command
+ * @param  {string} command   adb command to execute, leading "adb" keyword is optional
+ * @return {string}           output of the command
+ * @throws {String}           error message when adb command was invalid,
+ *                            could not be executed or timed out
  */
 Device.prototype.executeCommandSync = function (command) {
   return adbBridge.execSync(command, this.id);
