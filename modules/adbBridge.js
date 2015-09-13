@@ -1,38 +1,58 @@
 "use strict";
 
+/** @module adbBridge */
+
 var child_process = require('child_process');
 
+/**
+ * Path to global adb installation. It is assumed that the adb
+ * command is part of the sytsmes PATH.
+ * @type {String}
+ * @const
+ */
 var ADB_PATH = 'adb';
 
-exports.execAsync = function (command, deviceId) {
-  var adbCommand = getAdbCommand(command, deviceId);
+/**
+ * RexExp to match {@link module:adbBridge~ADB_PATH} at the beginning of a command.
+ * @type {RegExp}
+ * @const
+ */
+var REPLACE_ADB_REGEX = new RegExp('^' + ADB_PATH);
 
-  // TODO: this only works on windows machines, fix later
-  return child_process.spawn('cmd', ['/c', adbCommand], { env: process.env });
-};
-
+/**
+ * Executes an adb command on the connected device with the given id.
+ * @param  {String} command     adb command to execute,
+ *                              leading "adb" keyword is optional
+ * @param  {String} [deviceId]  unique device id as reported by adb
+ * @return {String}             stdout / result of executing the command
+ */
 exports.execSync = function (command, deviceId) {
-  command = sanitizeAdbCommand(command);
   var adbCommand = getAdbCommand(command, deviceId);
   return child_process.execSync(adbCommand).toString();
 };
 
 /**
- * Removes trailing "adb" keyword from command.
- * @param  {string} command   adb command to execute,
- *                            leading "adb" keyword is optional
- * @return {string}           sanitized command string
+ * Gets a clean adb command for the given device if present.
+ * @param  {String} command     adb command to execute,
+ *                              leading "adb" keyword is optional
+ * @param  {String} [deviceId]  unique device id as reported by adb
+ * @return {String}             adb command ready to be executed
  */
-function sanitizeAdbCommand(command) {
-  // TODO: refactor this function and getAdbCommand
-  return command.replace(/^adb /, '');
-}
-
 function getAdbCommand(command, deviceId) {
   var adbCommand = ADB_PATH;
   if (deviceId) {
     adbCommand += ' -s ' + deviceId;
   }
-  adbCommand += ' ' + command;
+  adbCommand += ' ' + sanitizeAdbCommand(command);
   return adbCommand;
+}
+
+/**
+ * Removes trailing "adb" keyword from command.
+ * @param  {String} command   adb command to execute,
+ *                            leading "adb" keyword is optional
+ * @return {String}           sanitized command string
+ */
+function sanitizeAdbCommand(command) {
+  return command.replace(REPLACE_ADB_REGEX, '');
 }
