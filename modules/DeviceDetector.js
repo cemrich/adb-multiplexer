@@ -1,18 +1,12 @@
 "use strict";
 
+var util = require('util');
+var EventEmitter = require('events');
 var adbBridge = require('./adbBridge');
 var Device = require('./Device');
 
 var DEVICE_REGEXP = /^([a-zA-Z0-9\-]{5,})\s+(device|emulator|offline|no device|unauthorized)(?:\s+product\:(.*)\s+model:(.*)\s+device:(.*))?$/mg;
 var WATCH_INTERVAL_MILLIS = 1000;
-
-/**
- * Called when devices have been added, removed or changed since the last
- * callback or instanciation.
- * @callback DeviceDetector~devicesChangedCallback
- * @param {DeviceDetector~Changeset} changed devices since last callback or
- *                                           instanciation
- */
 
  /**
   * Changeset containing added, removed or changed devices.
@@ -20,6 +14,27 @@ var WATCH_INTERVAL_MILLIS = 1000;
   * @property {Device[]} added    devices added since last lookup
   * @property {Device[]} removed  devices removed since last lookup
   * @property {Device[]} changed  devices with changed status since last lookup
+  */
+
+/**
+  * List of newly added devices.
+  * @event DeviceDetector#devicesAdded
+  * @type {Device[]}
+  */
+/**
+  * List of newly removed devices.
+  * @event DeviceDetector#devicesRemoved
+  * @type {Device[]}
+  */
+/**
+  * List of devices with changed status.
+  * @event DeviceDetector#devicesChanged
+  * @type {Device[]}
+  */
+/**
+  * Complete changeset with added, removed and changes devices.
+  * @event DeviceDetector#newChangeset
+  * @type {DeviceDetector~Changeset}
   */
 
 
@@ -30,7 +45,9 @@ var WATCH_INTERVAL_MILLIS = 1000;
  * @class
  */
 var DeviceDetector = function () {
-  // get conncted devices at startup time
+  EventEmitter.call(this);
+
+  // get connceted devices at startup time
   /**
    * Currently connected Device instances mapped to their ids.
    * This will be filled right after initialization.
@@ -38,20 +55,21 @@ var DeviceDetector = function () {
    */
   this.deviceMap = getDevices();
 
-  this.onDevicesChangedListener = null;
   this.interval = null;
 };
+
+util.inherits(DeviceDetector, EventEmitter);
 
 /**
  * Starts watching for changes in the device list, e.g. when the user connects
  * a new device, unplugs a device or grants adb access for an already connected
  * one.
- * @param  {DeviceDetector~devicesChangedCallback} onDevicesChanged callback
+ * @fires DeviceDetector#devicesAdded
+ * @fires DeviceDetector#devicesRemoved
+ * @fires DeviceDetector#devicesChanged
+ * @fires DeviceDetector#newChangeset
  */
-DeviceDetector.prototype.watch = function (onDevicesChanged) {
-  // TODO: refactor to event emitter
-  this.unwatch();
-  this.onDevicesChangedListener = onDevicesChanged;
+DeviceDetector.prototype.watch = function () {
   this.interval = setInterval(this.informAboutChangeset.bind(this), WATCH_INTERVAL_MILLIS);
 };
 
@@ -61,7 +79,6 @@ DeviceDetector.prototype.watch = function (onDevicesChanged) {
 DeviceDetector.prototype.unwatch = function () {
   if (this.interval !== null) {
     clearInterval(this.interval);
-    this.onDevicesChangedListener = null;
     this.interval = null;
   }
 };
@@ -107,10 +124,23 @@ DeviceDetector.prototype.informAboutChangeset = function () {
   this.deviceMap = getDevices();
 
   var changeset = getChangeset(oldDeviceMap, this.deviceMap);
+
+  if (changeset.added.length > 0) {
+    this.emit('devicesAdded', changeset.added);
+  }
+
+  if (changeset.removed.length > 0) {
+    this.emit('devicesRemoved', changeset.removed);
+  }
+
+  if (changeset.changed.length > 0) {
+    this.emit('devicesChanged', changeset.changed);
+  }
+
   if (changeset.added.length > 0 ||
-    changeset.removed.length > 0 ||
-    changeset.changed.length > 0) {
-      this.onDevicesChangedListener(changeset);
+      changeset.removed.length > 0 ||
+      changeset.changed.length > 0) {
+    this.emit('newChangeset', changeset);
   }
 
   return changeset;

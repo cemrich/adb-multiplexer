@@ -61,6 +61,20 @@ if (params.continue) {
 //==============================
 
 /**
+ * Tries to execute the command on newly added online devices.
+ * @param  {Device[]} devices  list of new or changed devices
+ */
+function newOrChangedDevicesListener(devices) {
+  try {
+    // TODO: will this execute commands multiple times on online devices?
+    executeForOnlineDevices(deviceDetector, params.command);
+  } catch (error) {
+    console.error(error.red);
+    deviceDetector.unwatch();
+  }
+}
+
+/**
  * Executes the given adb command on all devices that will be
  * connected in the future.
  * @param  {DeviceDetector} deviceDetector
@@ -68,16 +82,9 @@ if (params.continue) {
  *                                           leading "adb" keyword is optional
  */
 function executeForFutureDevices(deviceDetector, command) {
-  deviceDetector.watch(function (changeset) {
-    if (changeset.added.length > 0 || changeset.changed.length > 0) {
-      try {
-        executeForOnlineDevices(deviceDetector, params.command);
-      } catch (error) {
-        console.error(error.red);
-        deviceDetector.unwatch();
-      }
-    }
-  });
+  deviceDetector.on('devicesAdded', newOrChangedDevicesListener);
+  deviceDetector.on('devicesChanged', newOrChangedDevicesListener);
+  deviceDetector.watch();
 }
 
 /**
