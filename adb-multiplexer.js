@@ -95,12 +95,10 @@ function executeForOnlineDevices(deviceDetector, command) {
   if (onlineDevices.length > 0) {
     console.log('devices detected:\n' + formatDeviceList(onlineDevices).green);
     executeCommandOnDevices(onlineDevices, command);
+  } else if (offlineDevices.length > 0) {
+    console.log('offline devices detected:\n' + formatDeviceList(offlineDevices).red);
   } else {
-    if (offlineDevices.length > 0) {
-        console.log('offline devices detected:\n' + formatDeviceList(offlineDevices).red);
-    } else {
-      console.error('no devices detected\n'.red);
-    }
+    console.error('no devices detected\n'.red);
   }
 }
 
