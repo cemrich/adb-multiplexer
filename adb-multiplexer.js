@@ -41,8 +41,14 @@ args.addArgument([ '--no-color' ], {
 var params = args.parseArgs();
 var deviceDetector = new DeviceDetector();
 
-// always execute for all currently connected devices
-executeForOnlineDevices(deviceDetector, params.command);
+try {
+  // always execute for all currently connected devices
+  executeForOnlineDevices(deviceDetector, params.command);
+} catch (error) {
+  // in case of error exit script
+  console.error(error.red);
+  process.exit(1);
+}
 
 if (params.continue) {
   // additionally execute for devices conneted in the future
@@ -64,7 +70,12 @@ if (params.continue) {
 function executeForFutureDevices(deviceDetector, command) {
   deviceDetector.watch(function (changeset) {
     if (changeset.added.length > 0 || changeset.changed.length > 0) {
-      executeForOnlineDevices(deviceDetector, params.command);
+      try {
+        executeForOnlineDevices(deviceDetector, params.command);
+      } catch (error) {
+        console.error(error.red);
+        deviceDetector.unwatch();
+      }
     }
   });
 }
@@ -74,6 +85,8 @@ function executeForFutureDevices(deviceDetector, command) {
  * @param  {DeviceDetector} deviceDetector
  * @param  {string}         command          adb command to execute,
  *                                           leading "adb" keyword is optional
+ * @throws {String}                          error message when adb command was invalid,
+ *                                           could not be executed or timed out
  */
 function executeForOnlineDevices(deviceDetector, command) {
   var onlineDevices = deviceDetector.getOnlineDevices();
@@ -81,12 +94,7 @@ function executeForOnlineDevices(deviceDetector, command) {
 
   if (onlineDevices.length > 0) {
     console.log('devices detected:\n' + formatDeviceList(onlineDevices).green);
-    try {
-      executeCommandOnDevices(onlineDevices, command);
-    } catch (error) {
-      console.error(error.red);
-      // TODO: "unwatch" device detector when started with -c param to end program
-    }
+    executeCommandOnDevices(onlineDevices, command);
   } else {
     if (offlineDevices.length > 0) {
         console.log('offline devices detected:\n' + formatDeviceList(offlineDevices).red);

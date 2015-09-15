@@ -37,6 +37,9 @@ var DeviceDetector = function () {
    * @type {Map}
    */
   this.deviceMap = getDevices();
+
+  this.onDevicesChangedListener = null;
+  this.interval = null;
 };
 
 /**
@@ -46,8 +49,21 @@ var DeviceDetector = function () {
  * @param  {DeviceDetector~devicesChangedCallback} onDevicesChanged callback
  */
 DeviceDetector.prototype.watch = function (onDevicesChanged) {
+  // TODO: refactor to event emitter
+  this.unwatch();
   this.onDevicesChangedListener = onDevicesChanged;
-  setInterval(this.informAboutChangeset.bind(this), WATCH_INTERVAL_MILLIS);
+  this.interval = setInterval(this.informAboutChangeset.bind(this), WATCH_INTERVAL_MILLIS);
+};
+
+/**
+ * Stops watching for device changes.
+ */
+DeviceDetector.prototype.unwatch = function () {
+  if (this.interval !== null) {
+    clearInterval(this.interval);
+    this.onDevicesChangedListener = null;
+    this.interval = null;
+  }
 };
 
 /**
