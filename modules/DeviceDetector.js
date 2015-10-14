@@ -53,7 +53,7 @@ var DeviceDetector = function () {
    * This will be filled right after initialization.
    * @type {Map}
    */
-  this.deviceMap = getDevices();
+  this.deviceMap = this.getAdbDevices();
 
   this.interval = null;
 };
@@ -121,9 +121,9 @@ DeviceDetector.prototype.getOfflineDevices = function () {
  */
 DeviceDetector.prototype.informAboutChangeset = function () {
   var oldDeviceMap = this.deviceMap;
-  this.deviceMap = getDevices();
+  this.deviceMap = this.getAdbDevices();
 
-  var changeset = getChangeset(oldDeviceMap, this.deviceMap);
+  var changeset = this.getChangeset(oldDeviceMap, this.deviceMap);
 
   if (changeset.added.length > 0) {
     this.emit('devicesAdded', changeset.added);
@@ -150,9 +150,10 @@ DeviceDetector.prototype.informAboutChangeset = function () {
  * Calculates the cangeset of two given device maps.
  * @param {Map.<string, Device>} oldDeviceMap
  * @param {Map.<string, Device>} newDeviceMap
+ * @return {DeviceDetector~Changeset} changeset
  * @private
  */
-function getChangeset(oldDeviceMap, newDeviceMap) {
+DeviceDetector.prototype.getChangeset = function (oldDeviceMap, newDeviceMap) {
   var changeset = {
     added: [],
     removed: [],
@@ -161,8 +162,9 @@ function getChangeset(oldDeviceMap, newDeviceMap) {
 
   oldDeviceMap.forEach(function (device, id) {
     if (newDeviceMap.has(id)) {
-      if (!device.equals(newDeviceMap.get(id))) {
-        changeset.changed.push(device);
+      var newDevice = newDeviceMap.get(id);
+      if (!device.equals(newDevice)) {
+        changeset.changed.push(newDevice);
       }
     } else {
       changeset.removed.push(device);
@@ -176,28 +178,36 @@ function getChangeset(oldDeviceMap, newDeviceMap) {
   });
 
   return changeset;
-}
+};
 
 /**
  * @return  {Map.<string, Device>}  Currently connected android devices.
  *                                  Empty when no device is connected.
  * @private
  */
-function getDevices() {
+DeviceDetector.prototype.getAdbDevices = function () {
   var deviceMap = new Map();
-  var devices = adbBridge.execSync('devices -l');
+  var devices = this.getRawDeviceList();
 
   var match;
   while ((match = DEVICE_REGEXP.exec(devices))) {
     var device = new Device(match[1]);
-    device.status = match[2];
-    device.product = match[3];
-    device.model = match[4];
-    device.device = match[5];
+    device.status = match[2] || '';
+    device.product = match[3] || '';
+    device.model = match[4] || '';
+    device.device = match[5] || '';
     deviceMap.set(device.id, device);
   }
 
   return deviceMap;
-}
+};
+
+/**
+ * @return  {String}  device list as reported by adb
+ * @private
+ */
+DeviceDetector.prototype.getRawDeviceList = function () {
+  return adbBridge.execSync('devices -l');
+};
 
 module.exports = DeviceDetector;
