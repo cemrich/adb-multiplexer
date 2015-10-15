@@ -43,7 +43,7 @@ var deviceDetector = new DeviceDetector();
 
 try {
   // always execute for all currently connected devices
-  executeForOnlineDevices(deviceDetector, params.command);
+  executeForOnlineDevices(deviceDetector.getDevices(), params.command);
 } catch (error) {
   // in case of error exit script
   console.error(error.red);
@@ -66,8 +66,7 @@ if (params.continue) {
  */
 function newOrChangedDevicesListener(devices) {
   try {
-    // TODO: will this execute commands multiple times on online devices?
-    executeForOnlineDevices(deviceDetector, params.command);
+    executeForOnlineDevices(devices, params.command);
   } catch (error) {
     console.error(error.red);
     deviceDetector.unwatch();
@@ -88,16 +87,20 @@ function executeForFutureDevices(deviceDetector, command) {
 }
 
 /**
- * Executes the given adb command on all currently connected devices.
- * @param  {DeviceDetector} deviceDetector
+ * Executes the given adb command on the given devices if online.
+ * @param  {Device[]}       devices          devices to execute the command on
  * @param  {string}         command          adb command to execute,
  *                                           leading "adb" keyword is optional
  * @throws {String}                          error message when adb command was invalid,
  *                                           could not be executed or timed out
  */
-function executeForOnlineDevices(deviceDetector, command) {
-  var onlineDevices = deviceDetector.getOnlineDevices();
-  var offlineDevices = deviceDetector.getOfflineDevices();
+function executeForOnlineDevices(devices, command) {
+  var onlineDevices = devices.filter(function (device) {
+    return device.isOnline();
+  });
+  var offlineDevices = devices.filter(function (device) {
+    return !device.isOnline();
+  });
 
   if (onlineDevices.length > 0) {
     console.log('devices detected:\n' + formatDeviceList(onlineDevices).green);
