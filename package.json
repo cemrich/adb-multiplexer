@@ -4,7 +4,7 @@
   "description": "Executes ADB commands on all connected devices.",
   "main": "adb-multiplexer.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "Christine Coenen",
   "license": "MIT",
@@ -15,5 +15,8 @@
   "dependencies": {
     "argparse": "^1.0.2",
     "colors": "^1.1.2"
+  },
+  "devDependencies": {
+    "mocha": "^2.3.3"
   }
 }
