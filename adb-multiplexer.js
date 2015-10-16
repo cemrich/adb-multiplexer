@@ -13,7 +13,7 @@ var args = new ArgumentParser({
   version: '1.0',
   addHelp: true,
   description: 'Executes ADB commands on all connected devices.',
-  epilog: 'Example usage: main.js "adb install myApp.apk"'
+  epilog: 'Example usage: node adb-multiplexer.js "adb install myApp.apk"'
 });
 
 args.addArgument([ 'command' ], {

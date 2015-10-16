@@ -25,7 +25,7 @@ Optional arguments:
                   will be connected for as long as this tool is running.
   --no-color      Disables coloring of adb command output.
 
-Example usage: main.js "adb install myApp.apk"
+Example usage: node adb-multiplexer.js "adb install myApp.apk"
 ```
 
 ## Building
